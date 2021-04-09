@@ -23,6 +23,7 @@ open_project -reset trackletCalculator
 
 # source files
 set CFLAGS {-std=c++11 -I../TrackletAlgorithm}
+add_files ../TrackletAlgorithm/TrackletCalculator.cc -cflags "$CFLAGS"
 add_files ../TrackletAlgorithm/TrackletCalculatorTop.cc -cflags "$CFLAGS"
 add_files -tb ../TestBenches/TrackletCalculator_test.cpp -cflags "$CFLAGS"
 
