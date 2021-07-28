@@ -13,5 +13,6 @@ find -mindepth 1 -maxdepth 1 \
   ! -regex "^\.\/download\.sh$" \
   ! -regex "^\.\/clean\.sh$" \
   ! -regex "^\.\/generate_[A-Z]*\.py$" \
+  ! -regex "^\.\/reduced_[a-z]*\.dat$" \
     -exec rm -rfv {} \;
   #! -regex "^\.\/dtclinklayerdisk\.dat$" \
