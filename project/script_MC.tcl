@@ -24,34 +24,20 @@ add_files -tb ../TestBenches/MatchCalculator_test.cpp -cflags "$CFLAGS"
 # data files
 add_files -tb ../emData/MC/
 
-foreach i $modules_to_test {
-  set layerDisk [string range $i 3 4]
-  set iMC [string range $i 8 9]
-  set top_func [join [list "MatchCalculator_" $layerDisk "PHI" $iMC] ""]
-  puts [join [list "======== TESTING " $i " ========"] ""]
-  puts [join [list "layerDisk = " $layerDisk] ""]
-  puts [join [list "iMC = " $iMC] ""]
-  puts [join [list "top function = " $top_func] ""]
+set_top MatchCalculator_L3PHIC
+csynth_design
+export_design -format ip_catalog
 
-   # set macros for this module in CCFLAG environment variable
-  set ::env(CCFLAG) [join [list "-D \"MODULE_=" $i "_\" -D \"TOP_FUNC_=" $top_func "\""] ""]
+set_top MatchCalculator_L4PHIC
+csynth_design
+export_design -format ip_catalog
 
-  # run C-simulation for each module in modules_to_test
-  set_top $top_func
-  open_solution [join [list "solution_" $layerDisk $iMC] ""]
+set_top MatchCalculator_L5PHIC
+csynth_design
+export_design -format ip_catalog
 
-  # Define FPGA, clock frequency & common HLS settings.
-  source settings_hls.tcl
-  csim_design -mflags "-j8"
-
-  # only run C-synthesis, C/RTL cosimulation, and export for module_to_export
-  if { $i == $module_to_export } {
-    csynth_design
-    cosim_design
-    export_design -format ip_catalog
-    # Adding "-flow impl" runs full Vivado implementation, providing accurate resource use numbers (very slow).
-    #export_design -format ip_catalog -flow impl
-  }
-}
+set_top MatchCalculator_L6PHIC
+csynth_design
+export_design -format ip_catalog
 
 exit

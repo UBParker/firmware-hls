@@ -210,13 +210,8 @@ then
 fi
 
 # Run scripts to generate top functions in TrackletAlgorithm/
-./generate_IR.py
-./generate_VMR.py -a -w LUTs/wires.dat
-./generate_TC.py LUTs/wires.dat
-./generate_PR.py LUTs/wires.dat
-./generate_MC.py LUTs/wires.dat
-./generate_TB.py LUTs/wires.dat
-./generate_ME.py -s
+./generate_MC.py reduced_wires.dat
+./generate_TB.py reduced_wires.dat
 
 # Exit now if we are only downloading and unpacking LUTs.tar.gz.
 if [[ $tables_only != 0 ]]
