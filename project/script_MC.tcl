@@ -24,19 +24,19 @@ add_files -tb ../TestBenches/MatchCalculator_test.cpp -cflags "$CFLAGS"
 # data files
 add_files -tb ../emData/MC/
 
-set_top MatchCalculator_L3PHIC
+set_top MatchCalculator_L3PHIB
 csynth_design
 export_design -format ip_catalog
 
-set_top MatchCalculator_L4PHIC
+set_top MatchCalculator_L4PHIB
 csynth_design
 export_design -format ip_catalog
 
-set_top MatchCalculator_L5PHIC
+set_top MatchCalculator_L5PHIB
 csynth_design
 export_design -format ip_catalog
 
-set_top MatchCalculator_L6PHIC
+set_top MatchCalculator_L6PHIB
 csynth_design
 export_design -format ip_catalog
 
