@@ -1,147 +1,17 @@
 #!/usr/bin/env bash
 set -e
 
-#### fw_synch_210611 ####
-# Standard configuration
-memprints_url="https://cernbox.cern.ch/index.php/s/hUJUsqvCnKv2YdQ/download"
-luts_url="https://cernbox.cern.ch/index.php/s/9Yms3LCKJsg7UmF/download"
-# Combined modules
-memprints_url_cm="https://cernbox.cern.ch/index.php/s/RFpmFiSnFC84x0O/download"
-luts_url_cm="https://cernbox.cern.ch/index.php/s/kqZu8R7Ftu0YPoO/download"
-
-#### fw_synch_210503 ####
-# Standard configuration
-#memprints_url="https://cernbox.cern.ch/index.php/s/CipX7CfTXIj1lcK/download"
-#luts_url="https://cernbox.cern.ch/index.php/s/UDSvClVZksBr1Pq/download"
-# Combined modules
-#memprints_url_cm="https://www.dropbox.com/s/lf088lvyvg2t6jh/MemPrintsCombined_210319.tgz?dl=0"
-#luts_url_cm="https://www.dropbox.com/s/legrvm3gyu5hrth/LUTsCombined_210319.tgz?dl=0"
-
-#### fw_synch_201005 ####
-#memprints_url="https://cernbox.cern.ch/index.php/s/y7IWeDG4x7Sg7Im/download"
-#luts_url="https://cernbox.cern.ch/index.php/s/DuhCjcykSHZLRhM/download"
-
-#### fw_synch_200515 ####
-#memprints_url="https://cernbox.cern.ch/index.php/s/QvV86Qcc8n9R4sg/download"
-#luts_url="https://cernbox.cern.ch/index.php/s/YSER9ne7WVxiKXI/download"
-
 # The following modules will have dedicated directories of test-bench files
 # prepared for them.
 declare -a processing_modules=(
-  # VMRouter
-  "VMR_L1PHID"
-  "VMR_L2PHIA"
-  "VMR_L2PHIB"
-  "VMR_L3PHIA"
-  "VMR_L4PHIA"
-  "VMR_L5PHIA"
-  "VMR_L6PHIA"
-  "VMR_D1PHIA"
-  "VMR_D2PHIA"
-  "VMR_D3PHIA"
-  "VMR_D4PHIA"
-  "VMR_D5PHIA"
-
-  # VMRouter CM
-  "VMRCM_L1PHIA"
-  "VMRCM_L2PHIA"
-  "VMRCM_L3PHIA"
-  "VMRCM_L4PHIA"
-  "VMRCM_L5PHIA"
-  "VMRCM_L6PHIA"
-  "VMRCM_D1PHIA"
-  "VMRCM_D2PHIA"
-  "VMRCM_D3PHIA"
-  "VMRCM_D4PHIA"
-  "VMRCM_D5PHIA"
-
-  # TrackletEngine
-  "TE_L1PHIC12_L2PHIB12"
-  "TE_L1PHIE18_L2PHIC17"
-
-  # TrackletCalculator
-  "TC_L1L2A"
-  "TC_L1L2B"
-  "TC_L1L2C"
-  "TC_L1L2D"
-  "TC_L1L2E"
-  "TC_L1L2F"
-  "TC_L1L2G"
-  "TC_L1L2H"
-  "TC_L1L2I"
-  "TC_L1L2J"
-  "TC_L1L2K"
-  "TC_L1L2L"
-  "TC_L2L3A"
-  "TC_L2L3B"
-  "TC_L2L3C"
-  "TC_L2L3D"
-  "TC_L3L4A"
-  "TC_L3L4B"
-  "TC_L3L4C"
-  "TC_L3L4D"
-  "TC_L3L4E"
-  "TC_L3L4F"
-  "TC_L3L4G"
-  "TC_L3L4H"
-  "TC_L5L6A"
-  "TC_L5L6B"
-  "TC_L5L6C"
-  "TC_L5L6D"
-
-  # ProjectionRouter
-  "PR_L1PHIB"
-  "PR_L2PHIB"
-  "PR_L3PHIB"
-  "PR_L4PHIB"
-  "PR_L5PHIB"
-  "PR_L6PHIB"
-  "PR_L1PHIC"
-  "PR_L2PHIC"
-  "PR_L3PHIC"
-  "PR_L4PHIC"
-  "PR_L5PHIC"
-  "PR_L6PHIC"
-
-  # MatchEngine
-  "ME_L1PHIC12"
-  "ME_L2PHIC20"
-  "ME_L3PHIC20"
-  "ME_L4PHIC20"
-  "ME_L5PHIC20"
-  "ME_L6PHIC20"
-  "ME_D1PHIC20"
-  "ME_D2PHIC12"
-  "ME_D3PHIC12"
-  "ME_D4PHIC12"
-  "ME_D5PHIC12"
-
   # MatchCalculator
-  "MC_L1PHIB"
-  "MC_L2PHIB"
   "MC_L3PHIB"
   "MC_L4PHIB"
   "MC_L5PHIB"
   "MC_L6PHIB"
-  "MC_L1PHIC"
-  "MC_L2PHIC"
-  "MC_L3PHIC"
-  "MC_L4PHIC"
-  "MC_L5PHIC"
-  "MC_L6PHIC"
-
-  # MatchProcessor
-  "MP_L3PHIC"
 
   # TrackBuilder (aka FitTrack)
   "FT_L1L2"
-
-  # Tracklet Processor
-  "TP_L1L2D" 
-  "TP_L2L3C" 
-  "TP_L3L4C"
-  "TP_L5L6C"
-
 )
 
 # Function that prints information regarding the usage of this command
@@ -173,22 +43,6 @@ do
   shift
 done
 
-# If the MemPrints directory exists, assume the script has already been run,
-# and simply exit.
-if [ -d "MemPrints" ]
-then
-  echo "The emData directory must be cleaned for this script to work."
-  exit 0
-fi
-
-# If the LUTs directory exists, assume LUTs.tar.gz has already been downloaded
-# and unpacked, and only download and unpack MemPrints.tar.gz.
-memprints_only=0
-if [ -d "LUTs" ]
-then
-  memprints_only=1
-fi
-
 # Exit with an error message if run from a directory other than emData/.
 cwd=`pwd | xargs basename`
 if [[ $cwd != "emData" ]]
@@ -197,37 +51,15 @@ then
   exit 1
 fi
 
-# Download and unpack LUTs.tar.gz.
-if [[ $memprints_only == 0 ]]
-then
-  wget -O LUTs.tgz --quiet ${luts_url_cm}
-  tar -xzf LUTs.tgz
-  mv LUTs LUTsCM
-  rm -f LUTs.tgz
-  wget -O LUTs.tar.gz --quiet ${luts_url}
-  tar -xzf LUTs.tar.gz
-  rm -f LUTs.tar.gz
-fi
-
 # Run scripts to generate top functions in TrackletAlgorithm/
-./generate_MC.py reduced_wires.dat
-./generate_TB.py reduced_wires.dat
+./generate_MC.py LUTs/wires.dat
+./generate_TB.py LUTs/wires.dat
 
 # Exit now if we are only downloading and unpacking LUTs.tar.gz.
 if [[ $tables_only != 0 ]]
 then
   exit 0
 fi
-
-# Download and unpack the tarball.
-wget -O MemPrints.tgz --quiet ${memprints_url_cm}
-tar -xzf MemPrints.tgz
-mv MemPrints MemPrintsCM
-rm -f MemPrints.tgz
-
-wget -O MemPrints.tar.gz --quiet ${memprints_url}
-tar -xzf MemPrints.tar.gz
-rm -f MemPrints.tar.gz
 
 # Needed in order for awk to run successfully:
 # https://forums.xilinx.com/t5/Installation-and-Licensing/Vivado-2016-4-on-Ubuntu-16-04-LTS-quot-awk-symbol-lookup-error/td-p/747165
