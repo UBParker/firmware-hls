@@ -71,6 +71,7 @@ architecture behavior of tb_tf_top is
   constant FILE_OUT_FM_52 : string := dataOutDir&"FM_";
   constant FILE_OUT_BW_46 : string := dataOutDir&"BW_";
   constant FILE_OUT_TW_72 : string := dataOutDir&"TW_";
+  constant FILE_OUT_TF_464 : string := dataOutDir&"TF_";
   -- Debug output files to check input was correctly read.
   constant FILE_OUT_AS_debug : string   := dataOutDir&"AS_";
   constant FILE_OUT_TPAR_debug : string := dataOutDir&"TPAR_";
@@ -81,6 +82,10 @@ architecture behavior of tb_tf_top is
   constant inputFileNameEnding : string  := "_04.dat"; -- 04 specifies the nonant the testvectors represent
   constant outputFileNameEnding : string := ".txt";
   constant debugFileNameEnding : string  := ".debug.txt";
+
+  -- Empty fields in the output from FT_L1L2 corresponding to disk matches
+  constant emptyDiskMap : std_logic_vector(11 downto 0) := (others => '0');
+  constant emptyDiskStub : std_logic_vector(48 downto 0) := (others => '0');
 
   -- ########################### Signals ###########################
   -- ### UUT signals ###
@@ -421,5 +426,22 @@ begin
       DATA => TW_72_stream_AV_din(var)
     );
   end generate TW_72_loop;
+
+  TF_464_loop : for var in enum_TW_72 generate
+  begin
+    writeTF_464 : entity work.FileWriterFIFO
+    generic map (
+      FILE_NAME  => FILE_OUT_TF_464&memory_enum_to_string(var)&outputFileNameEnding,
+      FIFO_WIDTH  => 464
+    )
+    port map (
+      CLK => CLK,
+      START => MC_DONE,
+      DONE => FT_DONE,
+      WRITE_EN => TW_72_stream_A_write(var),
+      FULL_NEG => TW_72_stream_A_full_neg(var),
+      DATA => TW_72_stream_AV_din(var)&emptyDiskMap&BW_46_stream_AV_din(L1L2_L3)&BW_46_stream_AV_din(L1L2_L4)&BW_46_stream_AV_din(L1L2_L5)&BW_46_stream_AV_din(L1L2_L6)&emptyDiskStub&emptyDiskStub&emptyDiskStub&emptyDiskStub
+    );
+  end generate TF_464_loop;
 
 end behavior;
