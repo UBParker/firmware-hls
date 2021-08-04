@@ -44,6 +44,7 @@ procFile : process(CLK)
   file     FILE_OUT    : text;   
   variable LINE_OUT    : line;                              
   variable BX_CNT      : natural := 0;  --! Event counter
+  variable ADDR        : std_logic_vector(7 downto 0) := (others => '0');  --! Entry counter
   constant TXT_WIDTH   : natural := 11; --! Column width in output .txt file
 
   function to_hexstring ( VAR : std_logic_vector) return string is
@@ -70,7 +71,8 @@ begin
       -- Write column headings
       write(LINE_OUT, string'("TIME (ns)"), right, TXT_WIDTH);
       write(LINE_OUT, string'("BX")       , right, TXT_WIDTH);
-      write(LINE_OUT, string'("DATA")     , right, 2*TXT_WIDTH);
+      write(LINE_OUT, string'("ADDR")     , right, TXT_WIDTH);
+      write(LINE_OUT, string'("DATA")     , right, 11*TXT_WIDTH);
       writeline(FILE_OUT, LINE_OUT);      
     end if;
 
@@ -82,13 +84,16 @@ begin
         -- Valid data, so write it to file.
         write(LINE_OUT, NOW   , right, TXT_WIDTH); 
         write(LINE_OUT, BX_CNT, right, TXT_WIDTH);
-        write(LINE_OUT, to_hexstring(DATA), right, 2*TXT_WIDTH);
+        write(LINE_OUT, to_hexstring(ADDR), right, TXT_WIDTH);
+        write(LINE_OUT, to_hexstring(DATA), right, 11*TXT_WIDTH);
         writeline(FILE_OUT, LINE_OUT);      
+        ADDR := std_logic_vector(unsigned(ADDR) + "1");
       end if;
 
       if (DONE = '1') then
         -- Module has finished event, so increment event counter.
         BX_CNT := BX_CNT + 1;
+        ADDR := (others => '0');
 
         if (BX_CNT = MAX_EVENTS) then
           -- All events processed, so close file.
