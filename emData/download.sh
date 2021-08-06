@@ -28,7 +28,8 @@ luts_url_cm="https://cernbox.cern.ch/index.php/s/kqZu8R7Ftu0YPoO/download"
 # prepared for them.
 declare -a processing_modules=(
   # InputRouter
-  "IR_PS_1_A"
+  "IR_PS10G_3_A"
+
   # VMRouter
   "VMR_L1PHIE"
   "VMR_L1PHID"
