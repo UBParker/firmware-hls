@@ -30,6 +30,9 @@ set nProc [exec nproc]
 csim_design -mflags "-j$nProc" -argv "--link,4 --tkNonant,4"
 #possible options -trace_level all -rtl verilog -verbose 
 csynth_design 
+# cosim
+cosim_design -argv "--link,4 --tkNonant,4" -rtl vhdl
+
 # #possible options  -flow syn, -flow impl
-export_design -format ip_catalog 
+#export_design -format ip_catalog 
 exit
