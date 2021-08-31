@@ -140,74 +140,10 @@ namespace PR
     }
   }
 
-
 } // namesapce PR
 
 
-template<int L>
-void readTable(ap_uint<1> table[]){
 
-  if (L==TF::L1) {
-    bool tmp[256]=
-#include "../emData/ME/tables/METable_L1.tab"
-    for (int i=0;i<256;++i){
-#pragma HLS unroll
-      table[i]=tmp[i];
-    }
-  }
-
-/* FIXME uncomment these out when testing L2,L5, and L6. Need to be added to download.sh to work.
-  if (L==TF::L2) {
-    bool tmp[256]=
-#include "../emData/ME/tables/METable_L2.tab"
-    for (int i=0;i<256;++i){
-#pragma HLS unroll
-      table[i]=tmp[i];
-    }
-  }
-*/
-
-  if (L==TF::L3) {
-    bool tmp[256]=
-#include "../emData/MP/tables/METable_L3.tab"
-    for (int i=0;i<256;++i){
-#pragma HLS unroll
-      table[i]=tmp[i];
-    }
-  }
-
-  if (L==TF::L4) {
-    bool tmp[512]=
-#include "../emData/ME/tables/METable_L4.tab"
-    for (int i=0;i<512;++i){
-#pragma HLS unroll
-      table[i]=tmp[i];
-    }
-  }
-
-/*
-  if (L==TF::L5) {
-    bool tmp[512]=
-#include "../emData/ME/tables/METable_L5.tab"
-#pragma HLS unroll
-    for (int i=0;i<512;++i){
-      table[i]=tmp[i];
-    }
-  }
-
-  if (L==TF::L6) {
-    bool tmp[512]=
-#include "../emData/ME/tables/METable_L6.tab"
-#pragma HLS unroll
-    for (int i=0;i<512;++i){
-      table[i]=tmp[i];
-    }
-  }
-*/
-
-
-
-}
 
 
 
@@ -229,8 +165,8 @@ ap_uint<width> iabs( ap_int<width> value )
 // Template to get look up tables
 
 // Table for phi or z cuts
-template<bool phi, int L, int width, int depth>
-void readTable_Cuts(ap_uint<width> table[depth]){
+template<int width, int depth>
+void readTable_Cuts(bool phi, int L, ap_uint<width> table[depth]){
   if (phi){ // phi cuts
     if (L==TF::L1){
       ap_uint<width> tmp[depth] =
@@ -314,8 +250,10 @@ namespace MC {
   enum imc {UNDEF_ITC, A = 0, B = 1, C = 2, D = 3, E = 4, F = 5, G = 6, H = 7, I = 8, J = 9, K = 10, L = 11, M = 12, N = 13, O = 14};
 }
 
-template<regionType ASTYPE, regionType APTYPE, regionType VMSMEType, regionType FMTYPE, int maxFullMatchCopies, int LAYER=TF::L1, MC::imc PHISEC=MC::A>
+template<regionType ASTYPE, regionType APTYPE, regionType VMSMEType, regionType FMTYPE>
 void MatchCalculator(BXType bx,
+		     int LAYER,
+                     MC::imc PHISEC,
                      ap_uint<1> newtracklet,
                      ap_uint<1>& savedMatch,
                      ap_uint<17>& best_delta_phi,
@@ -332,7 +270,7 @@ void MatchCalculator(BXType bx,
                      int &nmcout6,
                      int &nmcout7,
                      int &nmcout8,
-                     FullMatchMemory<BARREL> fullmatch[maxFullMatchCopies]
+                     FullMatchMemory<BARREL> fullmatch[]
 ){
 
 #pragma HLS inline
@@ -369,9 +307,9 @@ void MatchCalculator(BXType bx,
 
   // Setup look up tables for match cuts
   ap_uint<LUT_matchcut_phi_width> LUT_matchcut_phi[LUT_matchcut_phi_depth];
-  readTable_Cuts<true,LAYER,LUT_matchcut_phi_width,LUT_matchcut_phi_depth>(LUT_matchcut_phi);
+  readTable_Cuts<LUT_matchcut_phi_width,LUT_matchcut_phi_depth>(true,LAYER,LUT_matchcut_phi);
   ap_uint<LUT_matchcut_z_width> LUT_matchcut_z[LUT_matchcut_z_depth];
-  readTable_Cuts<false,LAYER,LUT_matchcut_z_width,LUT_matchcut_z_depth>(LUT_matchcut_z);
+  readTable_Cuts<LUT_matchcut_z_width,LUT_matchcut_z_depth>(false,LAYER,LUT_matchcut_z);
 
   bool goodmatch                   = false;
 
@@ -497,17 +435,19 @@ void MatchCalculator(BXType bx,
 
 //////////////////////////////
 // MatchProcessor
-template<regionType PROJTYPE, regionType VMSMEType, regionType VMPTYPE, regionType ASTYPE, regionType APTYPE, regionType FMTYPE, unsigned int nINMEM, int maxFullMatchCopies,
-         TF::layerDisk LAYER=TF::L1, TF::layerDisk DISK=TF::D1, MC::imc PHISEC=MC::A>
+template<regionType PROJTYPE, regionType VMSMEType, regionType VMPTYPE, regionType ASTYPE, regionType APTYPE, regionType FMTYPE, int nINMEM>
 void MatchProcessor(BXType bx,
+                      const TF::layerDisk &LAYER,
+                      const TF::layerDisk &DISK,
+		      const MC::imc &PHISEC,
                       // because Vivado HLS cannot synthesize an array of
                       // pointers that point to stuff other than scalar or
                       // array of scalar ...
-                      const TrackletProjectionMemory<PROJTYPE> projin[nINMEM],
+                      const TrackletProjectionMemory<PROJTYPE> projin[],
                       const VMStubMEMemoryCM<VMSMEType, 3, 3, kNMatchEngines>& instubdata,
                       const AllStubMemory<ASTYPE>* allstub,
                       BXType& bx_o,
-                      FullMatchMemory<BARREL> fullmatch[maxFullMatchCopies]
+                      FullMatchMemory<BARREL> fullmatch[]
 ){
 #pragma HLS inline
 
@@ -515,11 +455,15 @@ void MatchProcessor(BXType bx,
   using namespace PR;
 
   //Initialize table for bend-rinv consistency
-  ap_uint<1> table[kNMatchEngines][(LAYER<TF::L4)?256:512]; //FIXME Need to figure out how to replace 256 with meaningful const.
+  const int width = isPSLayer<TF::L4>()[LAYER]?256:512;
+  ap_uint<1> *table[kNMatchEngines]; //FIXME Need to figure out how to replace 256 with meaningful const.
+  //ap_uint<1> table[kNMatchEngines][width]; //FIXME Need to figure out how to replace 256 with meaningful const.
+  //ap_uint<1> table[kNMatchEngines][(LAYER<TF::L4)?256:512]; //FIXME Need to figure out how to replace 256 with meaningful const.
 #pragma HLS ARRAY_PARTITION variable=table dim=0 complete
   readtable: for(unsigned int iMEU = 0; iMEU < kNMatchEngines; ++iMEU) {
 #pragma HLS unroll
-    readTable<LAYER>(table[iMEU]); 
+    table[iMEU] = new ap_uint<1>[width];
+    readTable(LAYER, table[iMEU]); 
   } 
 
   // initialization:
@@ -683,8 +627,8 @@ void MatchProcessor(BXType bx,
       
       lastTrkID = trkindex;
 
-      MatchCalculator<ASTYPE, APTYPE, VMSMEType, FMTYPE, maxFullMatchCopies, LAYER, PHISEC>
-	(bx, newtracklet, savedMatch, best_delta_phi, allstub, allproj, projindex, stubindex, bx_o,
+      MatchCalculator<ASTYPE, APTYPE, VMSMEType, FMTYPE>
+	(bx, LAYER, PHISEC, newtracklet, savedMatch, best_delta_phi, allstub, allproj, projindex, stubindex, bx_o,
 	 nmcout1, nmcout2, nmcout3, nmcout4, nmcout5, nmcout6, nmcout7, nmcout8,
 	 fullmatch);
     } //end MC if

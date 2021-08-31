@@ -26,8 +26,11 @@ void MatchProcessorTopL3(BXType bx,
  const auto LAYER  = TF::L3;
  const auto DISK   = TF::D1;
   const auto PHISEC = MC::C;
- MatchProcessor<BARRELPS, BARRELPS, BARREL, BARRELPS, BARRELPS, BARREL, maxTrackletProjections, maxFullMatchCopies, LAYER, DISK, PHISEC>
+ MatchProcessor<BARRELPS, BARRELPS, BARREL, BARRELPS, BARRELPS, BARREL, maxTrackletProjections>
                      (bx,
+                      LAYER,
+                      DISK,
+		      PHISEC,
                       projin,
                       instubdata,
                       allstub,
