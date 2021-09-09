@@ -248,6 +248,7 @@ void readTable_Cuts(bool phi, int L, ap_uint<width> table[depth]){
 // MatchCalculator
 namespace MC {
   enum imc {UNDEF_ITC, A = 0, B = 1, C = 2, D = 3, E = 4, F = 5, G = 6, H = 7, I = 8, J = 9, K = 10, L = 11, M = 12, N = 13, O = 14};
+  enum layer_type {PS = 0, TS = 1};
 }
 
 template<regionType ASTYPE, regionType APTYPE, regionType VMSMEType, regionType FMTYPE>
@@ -438,8 +439,27 @@ void MatchCalculator(BXType bx,
 template<regionType PROJTYPE, regionType VMSMEType, regionType VMPTYPE, regionType ASTYPE, regionType APTYPE, regionType FMTYPE, int nINMEM>
 void MatchProcessor(BXType bx,
                       const TF::layerDisk &LAYER,
-                      const TF::layerDisk &DISK,
 		      const MC::imc &PHISEC,
+                      // because Vivado HLS cannot synthesize an array of
+                      // pointers that point to stuff other than scalar or
+                      // array of scalar ...
+                      const TrackletProjectionMemory<PROJTYPE> projin[],
+                      const VMStubMEMemoryCM<VMSMEType, 3, 3, kNMatchEngines>& instubdata,
+                      const AllStubMemory<ASTYPE>* allstub,
+                      BXType& bx_o,
+                      FullMatchMemory<BARREL> fullmatch[]
+){
+
+  if (LAYER < TF::L4)
+    MatchProcessor<PROJTYPE, VMSMEType, VMPTYPE, ASTYPE, APTYPE, FMTYPE, nINMEM, MC::layer_type::PS>(bx, LAYER, PHISEC, projin, instubdata, allstub, bx_o, fullmatch);
+  else
+    MatchProcessor<PROJTYPE, VMSMEType, VMPTYPE, ASTYPE, APTYPE, FMTYPE, nINMEM, MC::layer_type::TS>(bx, LAYER, PHISEC, projin, instubdata, allstub, bx_o, fullmatch);
+}
+
+template<regionType PROJTYPE, regionType VMSMEType, regionType VMPTYPE, regionType ASTYPE, regionType APTYPE, regionType FMTYPE, int nINMEM, MC::layer_type PSTS>
+void MatchProcessor(BXType bx,
+                      const TF::layerDisk &LAYER,
+                      const MC::imc &PHISEC,
                       // because Vivado HLS cannot synthesize an array of
                       // pointers that point to stuff other than scalar or
                       // array of scalar ...
@@ -455,14 +475,13 @@ void MatchProcessor(BXType bx,
   using namespace PR;
 
   //Initialize table for bend-rinv consistency
-  const int width = isPSLayer<TF::L4>()[LAYER]?256:512;
-  ap_uint<1> *table[kNMatchEngines]; //FIXME Need to figure out how to replace 256 with meaningful const.
-  //ap_uint<1> table[kNMatchEngines][width]; //FIXME Need to figure out how to replace 256 with meaningful const.
+  constexpr int width = PSTS==MC::layer_type::PS?256:512;
+  //ap_uint<1> *table[kNMatchEngines]; //FIXME Need to figure out how to replace 256 with meaningful const.
+  ap_uint<1> table[kNMatchEngines][width]; //FIXME Need to figure out how to replace 256 with meaningful const.
   //ap_uint<1> table[kNMatchEngines][(LAYER<TF::L4)?256:512]; //FIXME Need to figure out how to replace 256 with meaningful const.
 #pragma HLS ARRAY_PARTITION variable=table dim=0 complete
   readtable: for(unsigned int iMEU = 0; iMEU < kNMatchEngines; ++iMEU) {
 #pragma HLS unroll
-    table[iMEU] = new ap_uint<1>[width];
     readTable(LAYER, table[iMEU]); 
   } 
 
@@ -691,10 +710,10 @@ void MatchProcessor(BXType bx,
       //memory the projection points to
       
       // number of bits used to distinguish the different modules in each layer/disk
-      auto nbits_all = LAYER!=0 ? nbitsallstubs[LAYER-1] : nbitsallstubs[trklet::N_LAYER + DISK-1];
+      auto nbits_all = LAYER < trklet::N_LAYER ? nbitsallstubs[LAYER-1] : nbitsallstubs[trklet::N_LAYER + LAYER-1];
       
       // number of bits used to distinguish between VMs within a module
-      auto nbits_vmme = LAYER!=0 ? nbits_vmmeall[LAYER-1] : nbits_vmmeall[trklet::N_LAYER + DISK-1];
+      auto nbits_vmme = LAYER < trklet::N_LAYER ? nbits_vmmeall[LAYER-1] : nbits_vmmeall[trklet::N_LAYER + LAYER-1];
       
       // bits used for routing
       iphi = iphiproj.range(iphiproj.length()-nbits_all-1,iphiproj.length()-nbits_all-nbits_vmme);

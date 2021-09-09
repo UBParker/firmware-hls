@@ -171,18 +171,6 @@ static void readTable(const TF::layerDisk &L, ap_uint<1> table[]){
     }
   }
 */
-
-
-
-}
-
-template<TF::layerDisk LAYER_MAX>
-static const ap_uint<1 << trklet::N_LAYER> isPSLayer() {
-  ap_uint<(1 << trklet::N_LAYER)> lut;
-  for(int i = 0; i < trklet::N_LAYER; ++i) {
-    lut[i] = (i < LAYER_MAX);
-  }
-  return lut;
 }
 
 #endif

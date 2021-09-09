@@ -24,12 +24,10 @@ void MatchProcessorTopL3(BXType bx,
  #pragma HLS resource variable=fullmatch[7].get_mem() latency=2
 
  const auto LAYER  = TF::L3;
- const auto DISK   = TF::D1;
-  const auto PHISEC = MC::C;
+ const auto PHISEC = MC::C;
  MatchProcessor<BARRELPS, BARRELPS, BARREL, BARRELPS, BARRELPS, BARREL, maxTrackletProjections>
                      (bx,
                       LAYER,
-                      DISK,
 		      PHISEC,
                       projin,
                       instubdata,
