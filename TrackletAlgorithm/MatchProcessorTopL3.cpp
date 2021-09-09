@@ -28,7 +28,7 @@ void MatchProcessorTopL3(BXType bx,
  MatchProcessor<BARRELPS, BARRELPS, BARREL, BARRELPS, BARRELPS, BARREL, maxTrackletProjections>
                      (bx,
                       LAYER,
-		      PHISEC,
+                      PHISEC,
                       projin,
                       instubdata,
                       allstub,

@@ -140,10 +140,73 @@ namespace PR
     }
   }
 
+
 } // namesapce PR
 
 
+static void readTable(const TF::layerDisk &L, ap_uint<1> table[]){
 
+  if (L==TF::L1) {
+    bool tmp[256]=
+#include "../emData/ME/tables/METable_L1.tab"
+    for (int i=0;i<256;++i){
+#pragma HLS unroll
+      table[i]=tmp[i];
+    }
+  }
+
+/* FIXME uncomment these out when testing L2,L5, and L6. Need to be added to download.sh to work.
+  if (L==TF::L2) {
+    bool tmp[256]=
+#include "../emData/ME/tables/METable_L2.tab"
+    for (int i=0;i<256;++i){
+#pragma HLS unroll
+      table[i]=tmp[i];
+    }
+  }
+*/
+
+  if (L==TF::L3) {
+    bool tmp[256]=
+#include "../emData/MP/tables/METable_L3.tab"
+    for (int i=0;i<256;++i){
+#pragma HLS unroll
+      table[i]=tmp[i];
+    }
+  }
+
+  if (L==TF::L4) {
+    bool tmp[512]=
+#include "../emData/ME/tables/METable_L4.tab"
+    for (int i=0;i<512;++i){
+#pragma HLS unroll
+      table[i]=tmp[i];
+    }
+  }
+
+/*
+  if (L==TF::L5) {
+    bool tmp[512]=
+#include "../emData/ME/tables/METable_L5.tab"
+#pragma HLS unroll
+    for (int i=0;i<512;++i){
+      table[i]=tmp[i];
+    }
+  }
+
+  if (L==TF::L6) {
+    bool tmp[512]=
+#include "../emData/ME/tables/METable_L6.tab"
+#pragma HLS unroll
+    for (int i=0;i<512;++i){
+      table[i]=tmp[i];
+    }
+  }
+*/
+
+
+
+}
 
 
 
@@ -248,13 +311,13 @@ void readTable_Cuts(bool phi, int L, ap_uint<width> table[depth]){
 // MatchCalculator
 namespace MC {
   enum imc {UNDEF_ITC, A = 0, B = 1, C = 2, D = 3, E = 4, F = 5, G = 6, H = 7, I = 8, J = 9, K = 10, L = 11, M = 12, N = 13, O = 14};
-  enum layer_type {PS = 0, TS = 1};
+  enum layer_type {PS = 0, TS = 1}; //TS b/c 2S is not a valid C++ name!
 }
 
 template<regionType ASTYPE, regionType APTYPE, regionType VMSMEType, regionType FMTYPE>
 void MatchCalculator(BXType bx,
-		     int LAYER,
-                     MC::imc PHISEC,
+                     const TF::layerDisk &LAYER,
+                     const MC::imc &PHISEC,
                      ap_uint<1> newtracklet,
                      ap_uint<1>& savedMatch,
                      ap_uint<17>& best_delta_phi,
@@ -475,10 +538,7 @@ void MatchProcessor(BXType bx,
   using namespace PR;
 
   //Initialize table for bend-rinv consistency
-  constexpr int width = PSTS==MC::layer_type::PS?256:512;
-  //ap_uint<1> *table[kNMatchEngines]; //FIXME Need to figure out how to replace 256 with meaningful const.
-  ap_uint<1> table[kNMatchEngines][width]; //FIXME Need to figure out how to replace 256 with meaningful const.
-  //ap_uint<1> table[kNMatchEngines][(LAYER<TF::L4)?256:512]; //FIXME Need to figure out how to replace 256 with meaningful const.
+  ap_uint<1> table[kNMatchEngines][PSTS==MC::layer_type::PS?256:512]; //FIXME Need to figure out how to replace 256 with meaningful const.
 #pragma HLS ARRAY_PARTITION variable=table dim=0 complete
   readtable: for(unsigned int iMEU = 0; iMEU < kNMatchEngines; ++iMEU) {
 #pragma HLS unroll
