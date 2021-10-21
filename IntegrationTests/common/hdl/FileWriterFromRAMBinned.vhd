@@ -66,6 +66,7 @@ procFile : process(CLK)
   variable v_ADDR      : std_logic_vector(ADDR_WIDTH-1 downto 0) := (others => '0');
   constant zeroADDR    : std_logic_vector(ADDR_WIDTH-1 downto 0) := (others => '0');
   constant TXT_WIDTH   : natural := 11;  --! Column width in output .txt file
+  variable EVENT_DONE  : boolean := false; --! If current event is done writing to file
 
   function to_hexstring ( VAR : std_logic_vector) return string is
   -- Convert to string, with "0x" prefix.
@@ -99,7 +100,7 @@ begin
 
     -- Check if new event available in memory
 
-    if (DONE = '1') then   --! Signal present in single clk cycle when event first ready.
+    if (EVENT_DONE = true) then   --! Signal present in single clk cycle when event first ready.
       BX_CNT := BX_CNT + 1;
       PAGE := BX_CNT mod NUM_PAGES;
 
@@ -111,17 +112,26 @@ begin
         -- All events processed, so close file once all stubs have been written to file.
         CLOSE_FILE := true;
       end if;
+
+      -- count number of entries in memory
+      bin_nent_loop : for i in 0 to NUM_BINS-1 loop
+        NENT(i) := to_integer(unsigned(NENT_ARR(PAGE)(i)));
+      end loop bin_nent_loop;
+
+      EVENT_DONE := false;
+
+    end if;
+
+     --! Delays FileWriter one clock w.r.t. the DONE signal as NENT_ARR might not have finished counting NENT when DONE signal goes high.
+     --! Otherwise a later bin might end up before an earlier bin in the written file.
+    if (DONE = '1') then
+      EVENT_DONE := true;
     end if;
 
     -- All events processed, so close file.
     if (CLOSE_FILE and READ_EN_LATCH(0) = '0') then
       file_close(FILE_OUT);
     end if;
-
-    -- update NENT every clock cycle as NENT_ARR might not have finished counting when DONE signal goes high
-    bin_nent_loop : for i in 0 to NUM_BINS-1 loop
-      NENT(i) := to_integer(unsigned(NENT_ARR(PAGE)(i)));
-    end loop bin_nent_loop;
 
     -- Launch memory read, if data remains to be read from current event.
 
