@@ -74,8 +74,13 @@ int main() {
   const auto nVMSTEOL = tb.nFiles(teolPattern);
   const auto nVMSTEO = tb.nFiles(teoPattern);
 
+  cout << nInputStubs << "   " << numInputs << endl;
+
   // Make sure that the number of input and output memories are correct
-  assert((nInputStubs == numInputs) && (nInputStubsDisk2S == numInputsDisk2S) && (nASCopies == maxASCopies) && (nVMSME == nvmME));
+  assert(nInputStubs == numInputs);
+  assert(nInputStubsDisk2S == numInputsDisk2S);
+  assert(nASCopies == maxASCopies);
+  assert(nVMSME == nvmME);
 
   // Open the files
   cout << "Open files..." << endl;
