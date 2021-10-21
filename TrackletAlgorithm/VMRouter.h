@@ -650,26 +650,31 @@ void VMRouter(const BXType bx, BXType& bx_o, const int fineBinTable[], const int
 	ap_uint<kNBits_MemAddr> addrCountOL[nvmOL][MaxOLCopies]; // Writing of TE Overlap stubs
 	ap_uint<kNBits_MemAddr-NBitsBinTEO+1> addrCountTEO[nvmTE][MaxTEOCopies][nmaxbinsperpage]; // Writing of TE Outer stubs
 
-	if (maskME) {
-		clear2DArray(nvmME, addrCountME);
-	}
-	if (maskTEI) {
-		clear2DArray(nvmTE, addrCountTEI);
-	}
-	if (maskOL) {
-		clear2DArray(nvmOL, addrCountOL);
-	}
-	if (maskTEO) {
-		clear3DArray(nvmTE, addrCountTEO);
-	}
-
 
 	/////////////////////////////////////
 	// Main Loop
-	constexpr int maxLoop = kMaxProc;
 
-	TOPLEVEL: for (int i = 0; i < maxLoop; ++i) {
+	constexpr int maxLoop = kMaxProc - kMaxProcOffset(module::VMR); // Number of stubs that can be processed
+
+	TOPLEVEL: for (int i = -1; i < maxLoop; ++i) {
 #pragma HLS PIPELINE II=1 rewind
+
+		// Use first loop iteration to clear the address count arrays
+		if (i == -1) {
+			if (maskME) {
+				clear2DArray(nvmME, addrCountME);
+			}
+			if (maskTEI) {
+				clear2DArray(nvmTE, addrCountTEI);
+			}
+			if (maskOL) {
+				clear2DArray(nvmOL, addrCountOL);
+			}
+			if (maskTEO) {
+				clear3DArray(nvmTE, addrCountTEO);
+			}
+			continue;
+		}
 
 		bool noStubsLeft = !hasStubs.or_reduce(); // Determines if we have processed all stubs. Is true if hasStubs is all 0s
 		bool resetNext = false; // Used to reset read_addr
