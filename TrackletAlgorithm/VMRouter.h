@@ -660,6 +660,7 @@ void VMRouter(const BXType bx, BXType& bx_o, const int fineBinTable[], const int
 #pragma HLS PIPELINE II=1 rewind
 
 		// Use first loop iteration to clear the address count arrays
+		// Putting this inside the loop rather than outside yields no errors when using the VHDL top-level in Vivado simulation
 		if (i == -1) {
 			if (maskME) {
 				clear2DArray(nvmME, addrCountME);
