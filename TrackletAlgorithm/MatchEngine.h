@@ -282,7 +282,7 @@ void MatchEngine(const BXType bx, BXType& bx_o,
 
 		// If the buffer is not empty we have a projection that we need to process ...
 		if (bufferNotEmpty) {
-			ap_uint<kNBits_MemAddrBinned> istubtmp=istub;
+			ap_uint<kNBits_MemAddrBinned> istubtmp= istub;
 
 			//Need to read the information about the proj in the buffer
 			second = qdata.range(BitLocations::kVMMESecondMSB, BitLocations::kVMMESecondLSB);
@@ -300,6 +300,9 @@ void MatchEngine(const BXType bx, BXType& bx_o,
 			if (istub + 1 >= nstubs){
 			  istub = 0;
 			  tail_readindex++;
+			}
+			else if(istep >= kMaxProc - kMaxProcOffset(module::ME) - 1){
+				istub = 0; // Resets stub index for next bx, needed for VHDL top-level Vivado simulation
 			}
 			else {
 			  istub++;
