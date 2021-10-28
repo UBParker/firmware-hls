@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# N.B. This uses a single event of test data from the reduced_config_pr
+# git repo. The same event or a set of 100 events can be obtained by
+# downloading the "memprints_url_reduced" cernbox files referred to in 
+# https://github.com/cms-L1TK/firmware-hls/blob/master/emData/download.sh ,
+# unpacking them into MemPrints with "tar -xzf", and removing one format
+# change with "sed -i "s/^0x//g" MemPrintsReduced1/InputStubs/InputStubs_*.dat".
+
 # The following modules will have dedicated directories of test-bench files
 # prepared for them.
 declare -a processing_modules=(
