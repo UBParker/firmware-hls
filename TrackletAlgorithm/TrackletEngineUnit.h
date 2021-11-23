@@ -3,7 +3,7 @@
 
 #include "Constants.h"
 #include "VMStubTEOuterMemoryCM.h"
-#include "TrackletProcessor_parameters.h"
+#include "TopFunctions/TrackletProcessor_parameters.h"
 
 template<TF::seed Seed, TC::itc iTC, regionType innerRegion,regionType VMSTEType>
 class TrackletEngineUnit {
